@@ -90,7 +90,7 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 			cmd.mu.Unlock()
 			cmd.send(ch, fmt.Sprintf("Skipping! The answer was: %s", current.Answer))
 			go func() {
-				time.Sleep(5 * time.Second)
+				time.Sleep(time.Duration(cmd.timeout) * time.Second)
 				cmd.askQuestion(channel)
 			}()
 		} else {
@@ -115,7 +115,7 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 		cmd.mu.Unlock()
 		cmd.send(ch, fmt.Sprintf("Skipping! The answer was: %s", current.Answer))
 		go func() {
-			time.Sleep(5 * time.Second)
+			time.Sleep(time.Duration(cmd.timeout) * time.Second)
 			cmd.askQuestion(ch)
 		}()
 		return true
@@ -162,7 +162,7 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 
 		cmd.send(ch, fmt.Sprintf("Correct! %s wins! The answer was: %s", nick, current.Answer))
 		go func() {
-			time.Sleep(5 * time.Second)
+			time.Sleep(time.Duration(cmd.timeout) * time.Second)
 			cmd.askQuestion(ch)
 		}()
 		return true
@@ -197,7 +197,7 @@ func (cmd *TriviaCommand) askQuestion(channel string) {
 		cmd.mu.Unlock()
 
 		cmd.send(ch, fmt.Sprintf("Time's up! The answer was: %s", answer))
-		time.Sleep(5 * time.Second)
+		time.Sleep(time.Duration(cmd.timeout) * time.Second)
 		cmd.askQuestion(ch)
 	})
 	cmd.mu.Unlock()
