@@ -27,16 +27,16 @@ type TriviaCommand struct {
 	messagesIn  chan msgsystem.Message
 	messagesOut chan msgsystem.Message
 
-	questions []TriviaQuestion
-	current   *TriviaQuestion
-	active    bool
-	scores    map[string]int
-	timer     *time.Timer
-	mu        sync.Mutex
+	questions      []TriviaQuestion
+	current        *TriviaQuestion
+	currentChannel string // channel where the active question was asked
+	active         bool
+	scores         map[string]int
+	timer          *time.Timer
+	mu             sync.Mutex
 
-	triviaFile    string
-	triviaChannel string
-	timeout       int
+	triviaFile string
+	timeout    int
 }
 
 func (cmd *TriviaCommand) Name() string {
@@ -55,11 +55,6 @@ func (cmd *TriviaCommand) Run(channelIn, channelOut chan msgsystem.Message) {
 		return
 	}
 	fmt.Printf("Trivia: loaded %d questions\n", len(cmd.questions))
-
-	go func() {
-		time.Sleep(3 * time.Second)
-		cmd.askQuestion()
-	}()
 }
 
 func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
@@ -77,15 +72,16 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 			cmd.timer = nil
 			cmd.active = false
 			current := cmd.current
+			ch := cmd.currentChannel
 			cmd.mu.Unlock()
-			cmd.send(channel, fmt.Sprintf("Skipping! The answer was: %s", current.Answer))
+			cmd.send(ch, fmt.Sprintf("Skipping! The answer was: %s", current.Answer))
 			go func() {
 				time.Sleep(5 * time.Second)
-				cmd.askQuestion()
+				cmd.askQuestion(channel)
 			}()
 		} else {
 			cmd.mu.Unlock()
-			go cmd.askQuestion()
+			go cmd.askQuestion(channel)
 		}
 		return true
 
@@ -101,11 +97,12 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 		}
 		cmd.active = false
 		current := cmd.current
+		ch := cmd.currentChannel
 		cmd.mu.Unlock()
-		cmd.send(channel, fmt.Sprintf("Skipping! The answer was: %s", current.Answer))
+		cmd.send(ch, fmt.Sprintf("Skipping! The answer was: %s", current.Answer))
 		go func() {
 			time.Sleep(5 * time.Second)
-			cmd.askQuestion()
+			cmd.askQuestion(ch)
 		}()
 		return true
 
@@ -126,11 +123,12 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 		cmd.mu.Unlock()
 		return false
 	}
-	if channel != cmd.triviaChannel {
+	if channel != cmd.currentChannel {
 		cmd.mu.Unlock()
 		return false
 	}
 	current := cmd.current
+	ch := cmd.currentChannel
 	cmd.mu.Unlock()
 
 	if checkAnswer(text, *current) {
@@ -148,10 +146,10 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 		cmd.scores[nick]++
 		cmd.mu.Unlock()
 
-		cmd.send(cmd.triviaChannel, fmt.Sprintf("Correct! %s wins! The answer was: %s", nick, current.Answer))
+		cmd.send(ch, fmt.Sprintf("Correct! %s wins! The answer was: %s", nick, current.Answer))
 		go func() {
 			time.Sleep(5 * time.Second)
-			cmd.askQuestion()
+			cmd.askQuestion(ch)
 		}()
 		return true
 	}
@@ -159,7 +157,7 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 	return false
 }
 
-func (cmd *TriviaCommand) askQuestion() {
+func (cmd *TriviaCommand) askQuestion(channel string) {
 	if len(cmd.questions) == 0 {
 		fmt.Println("Trivia: no questions loaded")
 		return
@@ -172,6 +170,7 @@ func (cmd *TriviaCommand) askQuestion() {
 	}
 	q := cmd.questions[rand.Intn(len(cmd.questions))]
 	cmd.current = &q
+	cmd.currentChannel = channel
 	cmd.active = true
 
 	timeout := time.Duration(cmd.timeout) * time.Second
@@ -180,15 +179,16 @@ func (cmd *TriviaCommand) askQuestion() {
 		cmd.active = false
 		cmd.timer = nil
 		answer := cmd.current.Answer
+		ch := cmd.currentChannel
 		cmd.mu.Unlock()
 
-		cmd.send(cmd.triviaChannel, fmt.Sprintf("Time's up! The answer was: %s", answer))
+		cmd.send(ch, fmt.Sprintf("Time's up! The answer was: %s", answer))
 		time.Sleep(5 * time.Second)
-		cmd.askQuestion()
+		cmd.askQuestion(ch)
 	})
 	cmd.mu.Unlock()
 
-	cmd.send(cmd.triviaChannel, fmt.Sprintf("[%s] %s", q.Category, q.Question))
+	cmd.send(channel, fmt.Sprintf("[%s] %s", q.Category, q.Question))
 }
 
 func (cmd *TriviaCommand) send(to, msg string) {
@@ -229,7 +229,6 @@ func checkAnswer(input string, q TriviaQuestion) bool {
 	}
 
 	answer := q.Answer
-	// Extract #token# style key words
 	re := regexp.MustCompile(`#([^#]+)#`)
 	matches := re.FindAllStringSubmatch(answer, -1)
 	if len(matches) > 0 {
@@ -293,7 +292,6 @@ func init() {
 
 	app.AddFlags([]app.CliFlag{
 		{V: &cmd.triviaFile, Name: "triviafile", Value: "trivia.txt", Desc: "Path to trivia questions file"},
-		{V: &cmd.triviaChannel, Name: "triviachannel", Value: "#ircflutest", Desc: "IRC channel to play trivia in"},
 		{V: &cmd.timeout, Name: "triviatimeout", Value: 30, Desc: "Seconds to wait for an answer before revealing it"},
 	})
 
