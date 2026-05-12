@@ -12,6 +12,7 @@ import (
 	_ "github.com/muesli/ircflu/commands/join"
 	_ "github.com/muesli/ircflu/commands/part"
 	_ "github.com/muesli/ircflu/commands/send"
+	_ "github.com/muesli/ircflu/commands/trivia"
 
 	"github.com/muesli/ircflu/msgsystem"
 	_ "github.com/muesli/ircflu/msgsystem/catserver"

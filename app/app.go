@@ -30,6 +30,8 @@ func Run() {
 			flag.StringVar((f.V).(*string), f.Name, f.Value.(string), f.Desc)
 		case bool:
 			flag.BoolVar((f.V).(*bool), f.Name, f.Value.(bool), f.Desc)
+		case int:
+			flag.IntVar((f.V).(*int), f.Name, f.Value.(int), f.Desc)
 		}
 	}
 
