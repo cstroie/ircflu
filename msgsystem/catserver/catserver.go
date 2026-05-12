@@ -119,8 +119,8 @@ func init() {
 	cat := CatSubSystem{}
 
 	app.AddFlags([]app.CliFlag{
-		app.CliFlag{&cat.catbind, "catbind", ":12345", "net.Listen spec, to listen for IRCCat msgs"},
-		app.CliFlag{&cat.catfam, "catfamily", "tcp4", "net.Listen address family for IRCCat msgs"},
+		app.CliFlag{V: &cat.catbind, Name: "catbind", Value: ":12345", Desc: "net.Listen spec, to listen for IRCCat msgs"},
+		app.CliFlag{V: &cat.catfam, Name: "catfamily", Value: "tcp4", Desc: "net.Listen address family for IRCCat msgs"},
 	})
 
 	msgsystem.RegisterSubSystem(&cat)

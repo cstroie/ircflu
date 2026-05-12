@@ -2,7 +2,8 @@
 package irc
 
 import (
-	"github.com/hoisie/web"
+	"net/http"
+
 	"github.com/muesli/ircflu/app"
 	"github.com/muesli/ircflu/msgsystem"
 )
@@ -16,7 +17,7 @@ func (sys *WebSubSystem) Name() string {
 }
 
 func (sys *WebSubSystem) Run(channelIn, channelOut chan msgsystem.Message) {
-	go web.Run(sys.addr)
+	go http.ListenAndServe(sys.addr, nil)
 }
 
 func (sys *WebSubSystem) Handle(cm msgsystem.Message) bool {
@@ -27,7 +28,7 @@ func init() {
 	w := WebSubSystem{}
 
 	app.AddFlags([]app.CliFlag{
-		app.CliFlag{&w.addr, "webaddr", "0.0.0.0:12346", "net.Listen spec, to listen for json-api calls"},
+		app.CliFlag{V: &w.addr, Name: "webaddr", Value: "0.0.0.0:12346", Desc: "net.Listen spec, to listen for json-api calls"},
 	})
 
 	msgsystem.RegisterSubSystem(&w)

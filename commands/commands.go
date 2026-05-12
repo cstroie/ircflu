@@ -25,7 +25,7 @@ func init() {
 	fmt.Println("Initializing command parsers...")
 
 	app.AddFlags([]app.CliFlag{
-		app.CliFlag{&activateCommands, "commands", "alias,auth,join,part,send", "Comma-separated list of commands (alias,auth,exec,join,part,send) you want to enable"},
+		app.CliFlag{V: &activateCommands, Name: "commands", Value: "alias,auth,join,part,send", Desc: "Comma-separated list of commands (alias,auth,exec,join,part,send) you want to enable"},
 	})
 
 	go func() {

@@ -16,7 +16,7 @@ func init() {
 	fmt.Println("Initializing auth subsystem...")
 
 	app.AddFlags([]app.CliFlag{
-		app.CliFlag{&password, "authpassword", "", "Password required to authenticate"},
+		app.CliFlag{V: &password, Name: "authpassword", Value: "", Desc: "Password required to authenticate"},
 	})
 }
 

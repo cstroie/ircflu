@@ -4,16 +4,15 @@ package gitlab
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hoisie/web"
+	"io"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/muesli/ircflu/msgsystem"
 	"github.com/muesli/ircflu/msgsystem/irc/irctools"
 	"github.com/muesli/ircflu/msgsystem/web/hooks"
-	"io/ioutil"
-	"strconv"
-	"strings"
 )
-
-var ()
 
 type GitLabHook struct {
 	name     string
@@ -37,8 +36,8 @@ func (hook *GitLabHook) SetMessageChan(channel chan msgsystem.Message) {
 	hook.messages = channel
 }
 
-func (hook *GitLabHook) Request(ctx *web.Context) {
-	b, err := ioutil.ReadAll(ctx.Request.Body)
+func (hook *GitLabHook) Request(w http.ResponseWriter, r *http.Request) {
+	b, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return

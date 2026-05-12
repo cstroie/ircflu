@@ -18,14 +18,9 @@ of chatbot.
 
 ## Installation
 
-Make sure you have a working Go environment. See the [install instructions](http://golang.org/doc/install.html).
+Make sure you have a working Go environment (Go 1.21+). See the [install instructions](https://golang.org/doc/install).
 
-First we need to get the required dependencies. ircflu itself is part of that
-list so the main executable can depend on our sub-packages:
-
-    go get -u github.com/muesli/ircflu
-
-Now we can build ircflu:
+Clone the repository and build:
 
     git clone git://github.com/muesli/ircflu.git
     cd ircflu
@@ -94,6 +89,4 @@ little summary of your changes on IRC.
 
 ## Development
 
-API docs can be found [here](http://godoc.org/github.com/muesli/ircflu).
-
-Continuous integration: [![Build Status](https://secure.travis-ci.org/muesli/ircflu.png)](http://travis-ci.org/muesli/ircflu)
+API docs can be found [here](https://pkg.go.dev/github.com/muesli/ircflu).

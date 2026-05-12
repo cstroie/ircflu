@@ -4,17 +4,19 @@ package jira
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hoisie/web"
+	"io"
+	"net/http"
+	"regexp"
+	"strings"
+
 	"github.com/muesli/ircflu/msgsystem"
 	"github.com/muesli/ircflu/msgsystem/irc/irctools"
 	"github.com/muesli/ircflu/msgsystem/web/hooks"
-	//"strconv"
-	"io/ioutil"
-	"regexp"
-	"strings"
 )
 
-var ()
+func titleCase(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
+}
 
 type JiraHook struct {
 	name     string
@@ -97,8 +99,8 @@ func (hook *JiraHook) SetMessageChan(channel chan msgsystem.Message) {
 	hook.messages = channel
 }
 
-func (hook *JiraHook) Request(ctx *web.Context) {
-	payload, err := ioutil.ReadAll(ctx.Request.Body)
+func (hook *JiraHook) Request(w http.ResponseWriter, r *http.Request) {
+	payload, err := io.ReadAll(r.Body)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
@@ -146,11 +148,11 @@ func (hook *JiraHook) Request(ctx *web.Context) {
 				switch field {
 				case "Attachment":
 					msg = msgsystem.Message{
-						Msg: fmt.Sprintf("Added %s %s", irctools.Colored(strings.Title(field), "lightblue"), irctools.Colored(change.ToString, "teal")),
+						Msg: fmt.Sprintf("Added %s %s", irctools.Colored(titleCase(field), "lightblue"), irctools.Colored(change.ToString, "teal")),
 					}
 				default:
 					msg = msgsystem.Message{
-						Msg: fmt.Sprintf("Changed %s from %s to %s", irctools.Colored(strings.Title(field), "lightblue"), irctools.Colored(change.FromString, "purple"), irctools.Colored(change.ToString, "teal")),
+						Msg: fmt.Sprintf("Changed %s from %s to %s", irctools.Colored(titleCase(field), "lightblue"), irctools.Colored(change.FromString, "purple"), irctools.Colored(change.ToString, "teal")),
 					}
 				}
 

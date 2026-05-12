@@ -3,7 +3,7 @@ package jabber
 
 import (
 	"fmt"
-	"github.com/mattn/go-xmpp"
+	xmpp "github.com/xmppo/go-xmpp"
 	"github.com/muesli/ircflu/app"
 	"github.com/muesli/ircflu/auth"
 	"github.com/muesli/ircflu/msgsystem"
@@ -90,10 +90,10 @@ func init() {
 	jabber := JabberSubSystem{}
 
 	app.AddFlags([]app.CliFlag{
-		app.CliFlag{&jabber.server, "jabberhost", "localhost:443", "Hostname of Jabber server, eg: talk.google.com:443"},
-		app.CliFlag{&jabber.username, "jabberuser", "ircflu", "Username to authenticate with Jabber server"},
-		app.CliFlag{&jabber.password, "jabberpassword", "", "Password to use to connect to Jabber server"},
-		app.CliFlag{&jabber.notls, "jabbernotls", false, "If you don't want to connect with TLS"},
+		app.CliFlag{V: &jabber.server, Name: "jabberhost", Value: "localhost:443", Desc: "Hostname of Jabber server, eg: talk.google.com:443"},
+		app.CliFlag{V: &jabber.username, Name: "jabberuser", Value: "ircflu", Desc: "Username to authenticate with Jabber server"},
+		app.CliFlag{V: &jabber.password, Name: "jabberpassword", Value: "", Desc: "Password to use to connect to Jabber server"},
+		app.CliFlag{V: &jabber.notls, Name: "jabbernotls", Value: false, Desc: "If you don't want to connect with TLS"},
 	})
 
 	msgsystem.RegisterSubSystem(&jabber)

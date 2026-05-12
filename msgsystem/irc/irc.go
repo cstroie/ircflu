@@ -158,19 +158,17 @@ func (sys *IrcSubSystem) Handle(cm msgsystem.Message) bool {
 
 		return true
 	}
-
-	return false
 }
 
 func init() {
 	irc := IrcSubSystem{}
 
 	app.AddFlags([]app.CliFlag{
-		app.CliFlag{&irc.irchost, "irchost", "", "Hostname of IRC server, eg: irc.example.org:6667"},
-		app.CliFlag{&irc.ircnick, "ircnick", "ircflu", "Nickname to use for IRC"},
-		app.CliFlag{&irc.ircpassword, "ircpassword", "", "Password to use to connect to IRC server"},
-		app.CliFlag{&irc.ircchannel, "ircchannel", "#ircflutest", "Which channel to join"},
-		app.CliFlag{&irc.ircssl, "ircssl", false, "Use SSL for IRC connection"},
+		app.CliFlag{V: &irc.irchost, Name: "irchost", Value: "", Desc: "Hostname of IRC server, eg: irc.example.org:6667"},
+		app.CliFlag{V: &irc.ircnick, Name: "ircnick", Value: "ircflu", Desc: "Nickname to use for IRC"},
+		app.CliFlag{V: &irc.ircpassword, Name: "ircpassword", Value: "", Desc: "Password to use to connect to IRC server"},
+		app.CliFlag{V: &irc.ircchannel, Name: "ircchannel", Value: "#ircflutest", Desc: "Which channel to join"},
+		app.CliFlag{V: &irc.ircssl, Name: "ircssl", Value: false, Desc: "Use SSL for IRC connection"},
 	})
 
 	msgsystem.RegisterSubSystem(&irc)

@@ -4,15 +4,14 @@ package github
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hoisie/web"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/muesli/ircflu/msgsystem"
 	"github.com/muesli/ircflu/msgsystem/irc/irctools"
 	"github.com/muesli/ircflu/msgsystem/web/hooks"
-	"strconv"
-	"strings"
 )
-
-var ()
 
 type GitHubHook struct {
 	name     string
@@ -36,9 +35,13 @@ func (hook *GitHubHook) SetMessageChan(channel chan msgsystem.Message) {
 	hook.messages = channel
 }
 
-func (hook *GitHubHook) Request(ctx *web.Context) {
-	payloadString, ok := ctx.Params["payload"]
-	if !ok {
+func (hook *GitHubHook) Request(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseForm(); err != nil {
+		fmt.Println("Error parsing form:", err)
+		return
+	}
+	payloadString := r.FormValue("payload")
+	if payloadString == "" {
 		fmt.Println("Couldn't find GitHub payload!")
 		return
 	}

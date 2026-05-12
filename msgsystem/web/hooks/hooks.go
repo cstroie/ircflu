@@ -3,10 +3,9 @@ package hooks
 
 import (
 	"fmt"
-	"github.com/hoisie/web"
+	"net/http"
+
 	"github.com/muesli/ircflu/msgsystem"
-	_ "strings"
-	_ "time"
 )
 
 var (
@@ -14,7 +13,7 @@ var (
 )
 
 type Hook interface {
-	Request(ctx *web.Context)
+	Request(w http.ResponseWriter, r *http.Request)
 
 	SetMessageChan(channel chan msgsystem.Message)
 
@@ -32,5 +31,5 @@ func RegisterWebHook(hook Hook) {
 	hook.SetMessageChan(msgsystem.MessagesOut)
 	Hooks = append(Hooks, &hook)
 
-	web.Post(hook.Path(), hook.Request)
+	http.HandleFunc(hook.Path(), hook.Request)
 }
