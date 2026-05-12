@@ -220,6 +220,25 @@ func (cmd *TriviaCommand) formatScores(scores map[string]int) string {
 	return "Scores: " + strings.Join(parts, " | ")
 }
 
+// normalize collapses unicode punctuation/dashes and extra whitespace so that
+// "R2‑D2" matches "R2D2", "it's" matches "its", etc.
+func normalize(s string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(s) {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case r == ' ' || r == '\t':
+			b.WriteRune(' ')
+		// treat all other chars (dashes, punctuation, unicode) as spaces
+		default:
+			b.WriteRune(' ')
+		}
+	}
+	// collapse runs of spaces
+	return strings.Join(strings.Fields(b.String()), " ")
+}
+
 func checkAnswer(input string, q TriviaQuestion) bool {
 	if q.Regexp != "" {
 		re, err := regexp.Compile("(?i)" + q.Regexp)
@@ -232,16 +251,20 @@ func checkAnswer(input string, q TriviaQuestion) bool {
 	re := regexp.MustCompile(`#([^#]+)#`)
 	matches := re.FindAllStringSubmatch(answer, -1)
 	if len(matches) > 0 {
-		lower := strings.ToLower(input)
+		normInput := normalize(input)
 		for _, m := range matches {
-			if !strings.Contains(lower, strings.ToLower(m[1])) {
+			if !strings.Contains(normInput, normalize(m[1])) {
 				return false
 			}
 		}
 		return true
 	}
 
-	return strings.EqualFold(strings.TrimSpace(input), strings.TrimSpace(answer))
+	// Plain answer: accept if the answer appears anywhere in the input
+	// (handles full-sentence responses like "Mount Whitney is the highest...")
+	normInput := normalize(input)
+	normAnswer := normalize(answer)
+	return strings.Contains(normInput, normAnswer)
 }
 
 func loadQuestions(path string) ([]TriviaQuestion, error) {
