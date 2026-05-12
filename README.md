@@ -13,8 +13,7 @@ updated or a service on our servers runs into an issue. We can even use it to
 trigger commands being executed on our servers, e.g. to deploy the latest
 source code.
 
-ircflu can do all that for us... except the communicating. It's not that kind
-of chatbot.
+ircflu can do all that for us, and also host a trivia game in a channel.
 
 ## Installation
 
@@ -35,7 +34,7 @@ option. Be aware that enabling the 'exec' command allows authenticated users
 to remotely execute arbitrary commands on your machine! To start ircflu with
 all currently available commands run:
 
-    ./ircflu -commands="alias,auth,exec,join,part,send" -authpassword="some_password" -irchost="some.server:6667" -ircchannel="#ircflu"
+    ./ircflu -commands="alias,auth,exec,join,part,send,trivia" -authpassword="some_password" -irchost="some.server:6667" -ircchannel="#ircflu"
 
 Run ircflu -help to see a full list of options!
 
@@ -73,6 +72,44 @@ Here's how you can create and use aliases:
 
     !alias deploy = exec ssh myserver ~/deploy.sh
     !deploy
+
+## Trivia game
+
+ircflu can host a trivia game in an IRC channel. Enable the `trivia` command and
+point it at a questions file:
+
+    ./ircflu -commands="trivia" -irchost="some.server:6667" -ircchannel="#ircflu" \
+             -triviafile="/path/to/trivia.txt" -triviachannel="#ircflu" -triviatimeout=30
+
+The questions file uses a simple block format (one blank line between questions):
+
+    Category: Science
+    Question: What is the chemical symbol for water?
+    Answer: H2O
+
+    Category: Geography
+    Question: What is the capital of France?
+    Answer: #Paris#, France
+
+    Category: Sports
+    Question: Which country won the 2022 FIFA World Cup?
+    Answer: Argentina
+    Regexp: (Argentina|Argentinian)
+
+Answer matching rules:
+- **Plain answer** — case-insensitive exact match
+- **`#word#` in answer** — the text between `#` markers must appear somewhere in the response (useful when only part of the answer matters)
+- **`Regexp:`** — overrides matching with a case-insensitive regular expression
+
+In-channel commands:
+
+| Command   | Effect                                              |
+|-----------|-----------------------------------------------------|
+| `!trivia` | Force the next question (or skip the current one)   |
+| `!skip`   | Skip the current question and reveal the answer     |
+| `!score`  | Show the current leaderboard                        |
+
+Scores are kept in memory and reset when the bot restarts.
 
 ## Integrated web hooks support
 
