@@ -31,6 +31,7 @@ type TriviaCommand struct {
 	current        *TriviaQuestion
 	currentChannel string // channel where the active question was asked
 	active         bool
+	stopped        bool
 	scores         map[string]int
 	timer          *time.Timer
 	mu             sync.Mutex
@@ -65,8 +66,21 @@ func (cmd *TriviaCommand) Parse(msg msgsystem.Message) bool {
 	}
 
 	switch text {
+	case "!trivia stop", "!trivia off":
+		cmd.mu.Lock()
+		cmd.stopped = true
+		if cmd.timer != nil {
+			cmd.timer.Stop()
+			cmd.timer = nil
+		}
+		cmd.active = false
+		cmd.mu.Unlock()
+		cmd.send(channel, "Trivia stopped. Type !trivia to start again.")
+		return true
+
 	case "!trivia":
 		cmd.mu.Lock()
+		cmd.stopped = false
 		if cmd.active && cmd.timer != nil {
 			cmd.timer.Stop()
 			cmd.timer = nil
@@ -164,7 +178,7 @@ func (cmd *TriviaCommand) askQuestion(channel string) {
 	}
 
 	cmd.mu.Lock()
-	if cmd.active {
+	if cmd.active || cmd.stopped {
 		cmd.mu.Unlock()
 		return
 	}
