@@ -281,6 +281,10 @@ func loadQuestions(path string) ([]TriviaQuestion, error) {
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+
 		if line == "" {
 			if inBlock && current.Question != "" && current.Answer != "" {
 				questions = append(questions, current)
@@ -294,13 +298,17 @@ func loadQuestions(path string) ([]TriviaQuestion, error) {
 			current.Category = strings.TrimSpace(after)
 			inBlock = true
 		} else if after, ok := strings.CutPrefix(line, "Question:"); ok {
-			current.Question = strings.TrimSpace(after)
+			q := strings.TrimSpace(after)
+			// replace fill-in-the-blank dots with underscores
+			q = strings.ReplaceAll(q, "·", "_")
+			current.Question = q
 			inBlock = true
 		} else if after, ok := strings.CutPrefix(line, "Answer:"); ok {
 			current.Answer = strings.TrimSpace(after)
 		} else if after, ok := strings.CutPrefix(line, "Regexp:"); ok {
 			current.Regexp = strings.TrimSpace(after)
 		}
+		// silently skip Author, Level, Comment, Score, Tip, TipCycle
 	}
 	// flush last block
 	if inBlock && current.Question != "" && current.Answer != "" {
