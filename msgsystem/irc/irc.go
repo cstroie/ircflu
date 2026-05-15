@@ -79,6 +79,24 @@ func (sys *IrcSubSystem) Run(channelIn, channelOut chan msgsystem.Message) {
 	sys.client.HandleFunc("disconnected", func(conn *irc.Conn, line *irc.Line) {
 		sys.ConnectedState <- false
 	})
+	sys.client.HandleFunc("PART", func(conn *irc.Conn, line *irc.Line) {
+		channelIn <- msgsystem.Message{
+			Source: line.Src,
+			Msg:    "\x00PART " + line.Args[0],
+		}
+	})
+	sys.client.HandleFunc("QUIT", func(conn *irc.Conn, line *irc.Line) {
+		channelIn <- msgsystem.Message{
+			Source: line.Src,
+			Msg:    "\x00QUIT",
+		}
+	})
+	sys.client.HandleFunc("NICK", func(conn *irc.Conn, line *irc.Line) {
+		channelIn <- msgsystem.Message{
+			Source: line.Src,
+			Msg:    "\x00NICK " + line.Args[0],
+		}
+	})
 	sys.client.HandleFunc("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
 		channel := line.Args[0]
 		text := ""
