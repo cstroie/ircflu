@@ -136,6 +136,17 @@ func (cmd *IdleRPGCommand) Parse(msg msgsystem.Message) bool {
 	case "!top":
 		return cmd.cmdTop(msg, channel)
 
+	case "!help":
+		cmd.reply(msg, "IdleRPG commands: "+
+			"!register <nick> <class> <pass> — create character | "+
+			"!login <pass> — log in (stay idle to level up!) | "+
+			"!logout — go offline | "+
+			"!status [nick] — show level, TTL, item total | "+
+			"!whoami — your own status | "+
+			"!top — top 5 players. "+
+			"Talking, changing nick, parting or quitting adds penalty time.")
+		return true
+
 	default:
 		// Penalize online player for talking
 		if !strings.HasPrefix(text, "!") {
