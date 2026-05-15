@@ -15,6 +15,7 @@ import (
 	"github.com/muesli/ircflu/app"
 	"github.com/muesli/ircflu/commands"
 	"github.com/muesli/ircflu/msgsystem"
+	"github.com/muesli/ircflu/msgsystem/irc"
 )
 
 var itemSlots = [10]string{
@@ -63,6 +64,26 @@ func (cmd *IdleRPGCommand) Run(channelIn, channelOut chan msgsystem.Message) {
 	cmd.load()
 
 	go cmd.tick()
+
+	if cmd.channel != "" {
+		go cmd.joinChannel()
+	}
+}
+
+func (cmd *IdleRPGCommand) joinChannel() {
+	for {
+		time.Sleep(2 * time.Second)
+		sub := msgsystem.GetSubSystem("irc")
+		if sub == nil {
+			continue
+		}
+		ircclient, ok := (*sub).(*irc.IrcSubSystem)
+		if !ok || ircclient == nil {
+			continue
+		}
+		ircclient.Join(cmd.channel)
+		return
+	}
 }
 
 func (cmd *IdleRPGCommand) Parse(msg msgsystem.Message) bool {
