@@ -168,6 +168,23 @@ func (cmd *IdleRPGCommand) handleEvent(event, nick, addr string) bool {
 	parts := strings.SplitN(event, " ", 2)
 	evType := parts[0]
 
+	// JOIN: player may be offline, handle before the online-only guard
+	if evType == "JOIN" {
+		cmd.mu.Lock()
+		p := cmd.players[strings.ToLower(nick)]
+		if p != nil {
+			p.Online = true
+			p.Addr = addr
+		}
+		cmd.mu.Unlock()
+		if p != nil {
+			cmd.save()
+			cmd.send(cmd.channel, fmt.Sprintf("%s, the level %d %s, has joined IdleRPG! Next level in %s.",
+				p.Nick, p.Level, p.Class, fmtDuration(p.TTL)))
+		}
+		return true
+	}
+
 	cmd.mu.Lock()
 	p := cmd.findByAddr(addr)
 	if p == nil {

@@ -79,6 +79,12 @@ func (sys *IrcSubSystem) Run(channelIn, channelOut chan msgsystem.Message) {
 	sys.client.HandleFunc("disconnected", func(conn *irc.Conn, line *irc.Line) {
 		sys.ConnectedState <- false
 	})
+	sys.client.HandleFunc("JOIN", func(conn *irc.Conn, line *irc.Line) {
+		channelIn <- msgsystem.Message{
+			Source: line.Src,
+			Msg:    "\x00JOIN " + line.Args[0],
+		}
+	})
 	sys.client.HandleFunc("PART", func(conn *irc.Conn, line *irc.Line) {
 		channelIn <- msgsystem.Message{
 			Source: line.Src,
